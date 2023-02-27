@@ -6,9 +6,9 @@ class Icon(tk.Button):
     p_im: Image.Image | None
     im: ImageTk.PhotoImage | None
 
-    def __init__(self, *args,
-                 pillow_image: Image = None):
-        super(Icon, self).__init__(*args)
+    def __init__(self, pillow_image: Image = None,
+                 **kwargs):
+        super(Icon, self).__init__(**kwargs)
         self.p_im = pillow_image
         self.im = None
         self.bind("<Configure>", self.__handle_configure)
