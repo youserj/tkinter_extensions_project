@@ -3,10 +3,10 @@ requeres = ["setuptools", "setuptools-scm"]
 build-backed = "setuptools.build_meta"
 
 [project]
-name = "tkinter_extensions"
-version = "0.0.1"
+name = "tKot"
+version = "0.0.2"
 authors = [
-    {name="Serj", email="youserj@outlook.com"}
+    {name="Serj Kotilevski", email="youserj@outlook.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.11"
@@ -18,3 +18,10 @@ classifiers = [
 dependencies = [
     "Pillow >= 9.4.0"
 ]
+keywords=[
+    "tkinter",
+    "widget"
+]
+
+[project.urls]
+repository = "https://github.com/youserj/tkinter_extensions_project"
