@@ -8,12 +8,10 @@ class Icon(tk.Button):
     info: str | None
 
     def __init__(self, pillow_image: Image = None,
-                 info: str = None,
                  **kwargs):
         super(Icon, self).__init__(**kwargs)
         self.p_im = pillow_image
         self.im = None
-        self.info = info
         self.bind("<Configure>", self.__handle_configure)
 
     def __handle_configure(self, e: tk.Event):
