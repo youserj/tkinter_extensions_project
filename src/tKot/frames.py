@@ -46,6 +46,7 @@ class ScrollFrame(tk.Frame):
 
     def yview(self, *args):
         """Query and change the vertical position of the view."""
+        length: int = len(self.winfo_children())
         match args:
             case "scroll", offset, "units":
                 self.first_viewable += int(offset)
@@ -53,8 +54,8 @@ class ScrollFrame(tk.Frame):
                 page = self.last_viewable - self.first_viewable
                 self.first_viewable += page * (int(offset))
             case "moveto", point:
-                self.first_viewable = int(len(self.winfo_children()) * float(point))
+                self.first_viewable = int(length * float(point))
             case err:
                 raise ValueError(F"unknown scroll value: {err}")
-        self.first_viewable = max(0, self.first_viewable)
+        self.first_viewable = min(length, max(0, self.first_viewable))
         self.__handle_configure()
