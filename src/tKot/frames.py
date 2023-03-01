@@ -29,11 +29,13 @@ class ScrollFrame(tk.Frame):
                     break
             else:
                 while self.first_viewable > 0:
-                    sum += childs[self.first_viewable-1].winfo_reqheight()
-                    if sum > h:
+                    next_h = childs[self.first_viewable-1].winfo_reqheight()
+                    if (sum + next_h) > h:
                         break
-                    self.first_viewable -= 1
-                self.last_viewable = len(childs)
+                    else:
+                        sum += next_h
+                        self.first_viewable -= 1
+                self.last_viewable = len(childs) - 1
             for i, c in enumerate(childs):
                 if self.last_viewable < i or i < self.first_viewable:
                     if c.winfo_viewable():
@@ -45,7 +47,9 @@ class ScrollFrame(tk.Frame):
                         c.grid(row=i, sticky=self.sticky)
                     else:
                         pass
-            self.yscrollcommand(self.first_viewable / len(childs), self.last_viewable / len(childs))
+            k: float = 1 + (h - sum)/childs[self.last_viewable].winfo_reqheight()
+            # print(F"{self.first_viewable=} {self.last_viewable=} {k=}")
+            self.yscrollcommand(self.first_viewable / len(childs), ((self.last_viewable + k) / len(childs)))
 
     def yview(self, *args):
         """Query and change the vertical position of the view."""
@@ -54,12 +58,12 @@ class ScrollFrame(tk.Frame):
             case "scroll", offset, "units":
                 self.first_viewable += int(offset)
             case "scroll", offset, "pages":
-                page = self.last_viewable - self.first_viewable
+                page = 1 + self.last_viewable - self.first_viewable
                 self.first_viewable += page * (int(offset))
             case "moveto", point:
                 self.first_viewable = int(length * float(point))
             case err:
                 raise ValueError(F"unknown scroll value: {err}")
-        self.first_viewable = min(length, max(0, self.first_viewable))
-        print(F"{self.first_viewable=}")
+        self.first_viewable = min(length-1, max(0, self.first_viewable))
+        # print(F"{self.first_viewable=}")
         self.__handle_configure()

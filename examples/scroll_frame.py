@@ -17,7 +17,7 @@ for i in range(2):
     tk.Radiobutton(fr1, text=f"___________________new#{i}").pack(anchor=tk.W)
     tk.Radiobutton(fr1, text=f"__________new#{i}").pack(anchor=tk.W)
 fr2 = tk.LabelFrame(fr, text="title2")
-for i in range(4):
+for i in range(8):
     tk.Radiobutton(fr2, text=f"new#{i}").pack()
 # for i in range(10):
 #     tk.Label(fr, text=i)
