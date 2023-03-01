@@ -19,6 +19,7 @@ class ScrollFrame(tk.Frame):
     def __handle_configure(self):
         if self.yscrollcommand:
             h = self.winfo_height()
+            print(f"{h=}")
             childs = self.winfo_children()
             sum = 0
             for c in childs[self.first_viewable:]:
@@ -27,9 +28,11 @@ class ScrollFrame(tk.Frame):
                     self.last_viewable = childs.index(c)
                     break
             else:
-                while sum < h and self.first_viewable > 0:
+                while self.first_viewable > 0:
+                    sum += childs[self.first_viewable-1].winfo_reqheight()
+                    if sum > h:
+                        break
                     self.first_viewable -= 1
-                    sum += childs[self.first_viewable].winfo_reqheight()
                 self.last_viewable = len(childs)
             for i, c in enumerate(childs):
                 if self.last_viewable < i or i < self.first_viewable:
@@ -58,4 +61,5 @@ class ScrollFrame(tk.Frame):
             case err:
                 raise ValueError(F"unknown scroll value: {err}")
         self.first_viewable = min(length, max(0, self.first_viewable))
+        print(F"{self.first_viewable=}")
         self.__handle_configure()
