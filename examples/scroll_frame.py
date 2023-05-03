@@ -12,13 +12,15 @@ s = tk.Scrollbar(root, orient=tk.VERTICAL, command=fr.yview)
 s.pack(side=tk.LEFT, expand=True, fill=tk.Y, anchor=tk.W)
 fr.pack(side=tk.LEFT, fill=tk.BOTH, anchor=tk.W)  # both for decide available height of frame
 fr.yscrollcommand = s.set
+
 fr1 = tk.LabelFrame(fr, text="title1")
 for i in range(2):
-    tk.Radiobutton(fr1, text=f"___________________new#{i}").pack(anchor=tk.W)
-    tk.Radiobutton(fr1, text=f"__________new#{i}").pack(anchor=tk.W)
+    tk.Radiobutton(fr1, text=f"___________________new#{i}").grid(row=0, column=i, sticky=tk.W)
+    for j in range(20):
+        tk.Radiobutton(fr1, text=f"__________new#{i}{j}").grid(row=j, column=i, sticky=tk.W)
 fr2 = tk.LabelFrame(fr, text="title2")
 for i in range(8):
-    tk.Radiobutton(fr2, text=f"new#{i}").pack()
+    tk.Radiobutton(fr2, text=f"new#{i}").grid(row=0, column=i)
 # for i in range(10):
 #     tk.Label(fr, text=i)
 # for i in range(10):

@@ -2,15 +2,18 @@ import tkinter as tk
 from PIL import Image, ImageTk
 
 
-class Icon(tk.Button):
+class Icon(tk.Widget):
     p_im: Image.Image | None
     im: ImageTk.PhotoImage | None
     info: str | None
 
-    def __init__(self, pillow_image: Image = None,
-                 **kwargs):
-        super(Icon, self).__init__(**kwargs)
-        self.p_im = pillow_image
+    def __init__(self, master=None, **kw):
+        self.p_im = kw.pop("pillow_image", None)
+        if kw.pop("with_fix", None):
+            kw["indicatoron"] = False
+            tk.Widget.__init__(self, master, "checkbutton", kw)
+        else:
+            tk.Widget.__init__(self, master, "button", kw)
         self.im = None
         self.bind("<Configure>", self.__handle_configure)
 
