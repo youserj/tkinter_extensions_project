@@ -53,15 +53,22 @@ class StatusIcon:
         """return current status"""
         return self.__current
 
+    def __set_image(self):
+        self.__im = ImageTk.PhotoImage(self.__images[self.__current].resize((self.__size.x, self.__size.y)))
+
     def set_status(self, value: int):
         """set status with change image"""
-        self.__im = ImageTk.PhotoImage(self.__images[value].resize((self.__size.x, self.__size.y)))
         self.__current = value
+        self.__set_image()
         if self.__c_id != -1:
             self.__c.itemconfigure(self.__c_id, image=self.__im)
 
     def set_size(self, value: Point):
-        self.__size = value
+        if self.__c_id == -1:
+            self.__size = value
+            self.__set_image()
+        else:
+            raise ValueError(F"need clear from canvas before set_size")
 
     @property
     def size(self):
@@ -74,3 +81,8 @@ class StatusIcon:
         self.__c_id = self.__c.create_image(x, y,
                                             anchor=tk.NW,
                                             image=self.__im)
+
+    def delete(self):
+        """delete from canvas"""
+        self.__c.delete(self.__c_id)
+        self.__c_id = -1
