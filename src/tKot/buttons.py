@@ -1,5 +1,6 @@
 import tkinter as tk
 from PIL import Image, ImageTk
+from .common import Point
 
 
 class Icon(tk.Widget):
@@ -32,8 +33,7 @@ class StatusIcon:
     c_id: int
     __current: int
     __im: ImageTk
-    __h: int
-    __w: int
+    __size = Point
 
     def __init__(self,
                  canvas: tk.Canvas,
@@ -45,10 +45,8 @@ class StatusIcon:
         """ Image canvas ID. -1 if not place """
         self.__images = images
         self.__current = 0
-        self.__h = 100
-        """icon height"""
-        self.__w = 100
-        """icon width"""
+        self.__size = Point(100, 100)
+        """icon size"""
         self.set_status(tuple(self.__images.keys())[0] if default is None else self.__images[default])
 
     def get_status(self) -> int:
@@ -57,16 +55,17 @@ class StatusIcon:
 
     def set_status(self, value: int):
         """set status with change image"""
-        self.__im = ImageTk.PhotoImage(self.__images[value].resize((self.__h, self.__w)))
+        self.__im = ImageTk.PhotoImage(self.__images[value].resize((self.__size.x, self.__size.y)))
         self.__current = value
         if self.__c_id != -1:
             self.__c.itemconfigure(self.__c_id, image=self.__im)
 
-    def set_width(self, value: int):
-        self.__w = value
+    def set_size(self, value: Point):
+        self.__size = value
 
-    def set_height(self, value: int):
-        self.__h = value
+    @property
+    def size(self):
+        return self.__size
 
     def place(self, x: int, y: int):
         """ replace on canvas by (x, y). Old canvas id shall delete"""
