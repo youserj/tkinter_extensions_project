@@ -21,8 +21,6 @@ class Point:
     def __mul__(self, other: int | float) -> Self:
         """:return Point with scaler x and y by other value"""
         if isinstance(other, (int, float)):
-            self.x = int(self.x*other)
-            self.y = int(self.y*other)
-            return self
+            return Point(int(self.x*other), int(self.y*other))
         else:
             ValueError(F"got unsupport type: {other}, expected int or float")
