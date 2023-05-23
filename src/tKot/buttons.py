@@ -44,10 +44,9 @@ class StatusIcon:
         self.__c_id = -1
         """ Image canvas ID. -1 if not place """
         self.__images = images
-        self.__current = 0
         self.__size = Point(100, 100)
         """icon size"""
-        self.set_status(tuple(self.__images.keys())[0] if default is None else self.__images[default])
+        self.set_status(tuple(self.__images.keys())[0] if default is None else default)
 
     def get_status(self) -> int:
         """return current status"""
