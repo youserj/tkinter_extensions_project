@@ -85,3 +85,7 @@ class StatusIcon:
         """delete from canvas"""
         self.__c.delete(self.__c_id)
         self.__c_id = -1
+
+    @property
+    def c_id(self) -> int:
+        return self.__c_id
