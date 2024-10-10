@@ -10,7 +10,10 @@ class Icon(tk.Widget):
 
     def __init__(self, master=None, **kw):
         self.p_im = kw.pop("pillow_image", None)
-        if kw.pop("with_fix", None):
+        if kw.pop("radio", False):
+            tk.Widget.__init__(self, master, 'radiobutton', kw)
+            kw["indicatoron"] = True
+        elif kw.pop("with_fix", None):
             kw["indicatoron"] = False
             tk.Widget.__init__(self, master, "checkbutton", kw)
         else:
