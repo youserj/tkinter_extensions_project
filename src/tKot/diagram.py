@@ -32,9 +32,6 @@ class ObjListWidget(ABC):
         pass
 
 
-type phase_labels = Literal['A', 'B', 'C']
-
-
 @dataclass
 class Vector3phase(ObjListWidget):
     size: Point
