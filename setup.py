@@ -7,6 +7,4 @@ setuptools.setup(
     description="tkinter widgets",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    keywords=['tkinter', 'widget'],
-    python_requires='>=3.11',
 )
