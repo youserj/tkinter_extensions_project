@@ -1,9 +1,7 @@
 import math
-import time
 import tkinter as tk
-
 import numpy as np
-from build.lib.tKot.common import Point
+from src.tKot.common import Point
 from src.tKot.diagram import Vector3phase
 
 

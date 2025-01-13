@@ -56,7 +56,7 @@ class StatusIcon:
         return self.__current
 
     def __set_image(self):
-        self.__im = ImageTk.PhotoImage(self.__images[self.__current].resize((self.__size.x, self.__size.y)))
+        self.__im = ImageTk.PhotoImage(self.__images[self.__current].resize((int(self.__size.x), int(self.__size.y))))
 
     def set_status(self, value: int):
         """set status with change image"""

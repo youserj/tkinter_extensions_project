@@ -109,7 +109,7 @@ class Vector3phase(ObjListWidget):
         colorA, colorB, colorC = self.colors
         self.__center = self.size * 0.5
         self.__cid = self.can.create_rectangle(
-            self.__coords.decoding,
+            *self.__coords,
             x + self.size.x, y + self.size.y,
             width=0,
             fill="white"

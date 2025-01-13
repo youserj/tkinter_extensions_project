@@ -1,52 +1,102 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Self
-from itertools import cycle, batched
+import numpy as np
+from numpy.typing import NDArray
 
 
-@dataclass
-class Point:
-    x: int = 0
-    y: int = 0
+class Coords(ABC):
+    _coords: NDArray[np.float16]
+
+    @abstractmethod
+    def __init__(self, *coords: int | float, arr: np.ndarray = None):
+        """init"""
+
+    def __mul__(self, other: int | float):
+        if isinstance(other, (int, float)):
+            return self.__class__(arr=self._coords * other)
+        else:
+            raise TypeError(F"for multiplicate of {self.__class__.__name__}")
+
+    def __truediv__(self, other: int | float):
+        if isinstance(other, (int, float)):
+            return self.__class__(arr=self._coords / other)
+        else:
+            raise TypeError(F"for truediv of {self.__class__.__name__}")
+
+    def __floordiv__(self, other: int | float):
+        if isinstance(other, (int, float)):
+            return self.__class__(arr=self._coords / other)
+        else:
+            raise TypeError(F"for truediv of {self.__class__.__name__}")
+
+    def __iter__(self):
+        return iter(self._coords.astype(
+            dtype=np.int16
+        ).flatten(
+        ).tolist())
+
+    def __eq__(self, other: Self):
+        return np.equal(self._coords, other._coords).all()
+
+
+class Point(Coords):
+    def __init__(self, *coords: int | float, arr: np.ndarray = None, x: int | float = None, y: int | float = None):
+        if arr is not None:
+            self._coords = arr
+        else:
+            if x is not None or y is not None:
+                coords = (
+                    x if isinstance(x, (int, float)) else 0,
+                    y if isinstance(y, (int, float)) else 0
+                )
+            elif len(coords) == 0:
+                coords = (0, 0)
+            elif len(coords) != 2:
+                raise ValueError(F"{self.__class__.__name__} got not one pair values")
+            self._coords = np.array(coords, dtype=np.float16).reshape(1, 2)
 
     @property
-    def decoding(self):
-        return self.x, self.y
+    def x(self) -> float:
+        return float(self._coords[0][0])
 
-    def move(self, value: int):
-        self.x += value
-        self.y += value
+    @property
+    def y(self) -> float:
+        return float(self._coords[0][1])
+
+    @x.setter
+    def x(self, value: int | float):
+        self._coords[0][0] = value
+
+    @y.setter
+    def y(self, value: int | float):
+        self._coords[0][1] = value
+
+    def __add__(self, other: Self):
+        return self.__class__(arr=self._coords + other._coords)
+
+    def __sub__(self, other: Self):
+        return self.__class__(arr=self._coords - other._coords)
+
+    def __mul__(self, other: int | float | Self):
+        if isinstance(other, Point):
+            return self.__class__(arr=self._coords * other._coords)
+        else:
+            return super().__mul__(other)
+
+    def __truediv__(self, other: int | float | Self):
+        if isinstance(other, Point):
+            return self.__class__(arr=self._coords / other._coords)
+        else:
+            return super().__truediv__(other)
+
+    def __floordiv__(self, other: int | float | Self):
+        if isinstance(other, Point):
+            return self.__class__(arr=self._coords // other._coords)
+        else:
+            return super().__floordiv__(other)
 
     def __str__(self):
-        return F'<{self.x},{self.y}>'
-
-    def __mul__(self, other: int | float) -> Self:
-        """:return Point with scaler x and y by other value"""
-        if isinstance(other, (int, float)):
-            return Point(int(self.x*other), int(self.y*other))
-        else:
-            ValueError(F"got unsupport type: {other}, expected int or float")
-
-    def __sub__(self, other: Self) -> Self:
-        return self.__class__(
-            self.x - other.x,
-            self.y - other.y)
-
-    def __add__(self, other) -> Self:
-        return self.__class__(
-            self.x + other.x,
-            self.y + other.y)
-
-    def __floordiv__(self, other: int):
-        return self.__class__(
-            self.x // other,
-            self.y // other)
-
-    def __truediv__(self, other: Self):
-        return self.__class__(
-            self.x / other.x,
-            self.y / other.y
-        )
+        return F"{int(self.x)}+{int(self.y)}"
 
     def __getitem__(self, item):
         if item == 0:
@@ -56,68 +106,54 @@ class Point:
         else:
             raise StopIteration
 
-    def to_tuple(self) -> tuple[int, int]:
-        return self.x, self.y
 
-    #
-    # def __iter__(self):
-    #     return iter((self.x, self.y))
-
-
-class Coords(ABC):
-    _coords: tuple[int, ...]
-
-    def __init__(self, *coords: int):
-        self._coords = coords
-        self.validate()
-
-    @abstractmethod
-    def validate(self):
-        """runtime init check"""
-
-    def __add__(self, other: Point):
-        if isinstance(other, Point):
-            it_ = cycle(other.to_tuple())
-            return self.__class__(*(coord + next(it_) for coord in self._coords))
-        else:
-            raise TypeError(F"for add of {self.__class__.__name__}")
-
-    def __mul__(self, other: int | float | Point):
-        if isinstance(other, (int, float)):
-            return self.__class__(*(int(coord * other) for coord in self._coords))
-        elif isinstance(other, Point):
-            return self.__class__(*(int(coord * (other.y if i % 2 else other.x)) for i, coord in enumerate(self._coords)))
-        else:
-            raise TypeError(F"for multiplicate of {self.__class__.__name__}")
-
-    def __iter__(self):
-        return iter(self._coords)
+class Size(Point):
+    def __str__(self):
+        return F"{int(self.x)}x{int(self.y)}"
 
 
 class Polygon(Coords):
-    def validate(self):
-        if len(self._coords) % 2 != 0:
+    def __init__(self, *coords: int | float, arr: np.ndarray = None):
+        if arr is not None:
+            self._coords = arr
+        elif len(coords) < 2:
             raise ValueError(F"{self.__class__.__name__} got not pair values")
+        else:
+            self._coords = np.array(coords, dtype=np.float16).reshape(len(coords) // 2, 2)
+
+    def __add__(self, other: Point):
+        return self.__class__(arr=self._coords + other._coords)
+
+    def __sub__(self, other: Point):
+        return self.__class__(arr=self._coords - other._coords)
+
+    def __mul__(self, other: int | float | Point):
+        if isinstance(other, Point):
+            return self.__class__(arr=self._coords * other._coords)
+        else:
+            return super().__mul__(other)
+
+    def __truediv__(self, other: int | float | Point):
+        if isinstance(other, Point):
+            return self.__class__(arr=self._coords / other._coords)
+        else:
+            return super().__truediv__(other)
+
+    def __floordiv__(self, other: int | float | Point):
+        if isinstance(other, Point):
+            return self.__class__(arr=self._coords // other._coords)
+        else:
+            return super().__floordiv__(other)
 
     @property
-    def size(self) -> Point:
+    def size(self) -> Size:
         """area occupied by polygon"""
-        x_ = list()
-        y_ = list()
-        for x, y in batched(self._coords, 2):
-            x_.append(x)
-            y_.append(y)
-        return Point(max(x_) - min(x_), max(y_) - min(y_))
+        return Size(arr=(self._coords.max(axis=0) - self._coords.min(axis=0)).reshape(1, 2))
 
     @property
     def base(self) -> Point:
         """upper left point"""
-        x_ = list()
-        y_ = list()
-        for x, y in batched(self._coords, 2):
-            x_.append(x)
-            y_.append(y)
-        return Point(min(x_), min(y_))
+        return Point(arr=self._coords.min(axis=0).reshape(1, 2))
 
     def move_to(self, p: Point) -> Self:
         """move base to Point<x, y>"""
@@ -129,5 +165,12 @@ class Polygon(Coords):
 
 class Box(Polygon):
     def validate(self):
-        if len(self._coords) != 4:
-            raise ValueError(F"got coords[{len(self._coords)}], expected 4")
+        if len(self._coords) != 2:
+            raise ValueError(F"got pair[{len(self._coords)}], expected 2")
+
+    @classmethod
+    def from_size(cls, size: Size, base: Point = Point(0, 0)) -> Self:
+        return cls(arr=np.concatenate((base._coords, (base + size)._coords)))
+
+    def __str__(self):
+        return F"{self.size}+{self.base}"
