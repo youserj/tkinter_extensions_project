@@ -67,4 +67,5 @@ class TestType(unittest.TestCase):
     def test_copy(self):
         p = Point(10, 10)
         p2 = copy(p)
-        print(id(p2), id(p))
+        p2.x = 20
+        print(p, p2)

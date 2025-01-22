@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Self
+from typing import Self, TypeVar, Generic
 import numpy as np
 from numpy.typing import NDArray
 
@@ -106,6 +106,9 @@ class Point(Coords):
         else:
             raise StopIteration
 
+    def __copy__(self):
+        return self.__class__(arr=self._coords.copy())
+
 
 class Size(Point):
     def __str__(self):
@@ -159,7 +162,7 @@ class Polygon(Coords):
         """move base to Point<x, y>"""
         return self + (p - self.base)
 
-    def reshape(self, shape: Point) -> Self:
+    def reshape(self, shape: Size) -> Self:
         return self * (shape / self.size)
 
 
@@ -174,3 +177,41 @@ class Box(Polygon):
 
     def __str__(self):
         return F"{self.size}+{self.base}"
+
+
+T = TypeVar("T")
+
+
+class CircleTuple(Generic[T]):
+    """tuple with circle next/previous methods"""
+    __values: tuple[T, ...]
+    __pos: int
+
+    def __init__(self, /, *values: T, position: int = 0, value: T = None):
+        self.__values = tuple(values)
+        if value is not None:
+            self.set(value)
+        else:
+            if position <= len(values):
+                self.__pos = position
+            else:
+                raise ValueError(F"current index more then common values amount")
+
+    @property
+    def current(self) -> T:
+        return self.__values[self.__pos]
+
+    def next(self) -> T:
+        self.__pos += 1
+        if self.__pos > len(self.__values) - 1:
+            self.__pos = 0
+        return self.__values[self.__pos]
+
+    def previous(self) -> T:
+        self.__pos -= 1
+        if self.__pos < 0:
+            self.__pos = len(self.__values) - 1
+        return self.current
+
+    def set(self, value: T):
+        self.__pos = self.__values.index(value)
