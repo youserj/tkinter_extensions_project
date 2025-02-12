@@ -96,7 +96,7 @@ class Point(Coords):
             return super().__floordiv__(other)
 
     def __str__(self):
-        return F"{int(self.x)}+{int(self.y)}"
+        return F"{int(self.x):+}{int(self.y):+}"
 
     def __getitem__(self, item):
         if item == 0:
@@ -176,7 +176,7 @@ class Box(Polygon):
         return cls(arr=np.concatenate((base._coords, (base + size)._coords)))
 
     def __str__(self):
-        return F"{self.size}+{self.base}"
+        return F"{self.size}{self.base}"
 
 
 T = TypeVar("T")
