@@ -26,6 +26,13 @@ class TestType(unittest.TestCase):
             base=Point(2, 2)
         )
         self.assertEqual(str(box2), "10x10+2+2")
+        self.assertEqual(box.NE, Point(10, 1))
+        self.assertEqual(box.NW, Point(1, 1))
+        self.assertEqual(box.SE, Point(10, 10))
+        self.assertEqual(box.SW, Point(1, 10))
+        print(box)
+        box.x1 = 10
+        print(box)
 
     def test_init(self):
         self.assertEqual(Point(), Point(0, 0))
@@ -35,6 +42,10 @@ class TestType(unittest.TestCase):
         self.assertEqual(Point(x=1, y=10), Point(1, 10), "by x, y ordinate")
         size = Size(arr=point._coords)
         self.assertEqual(str(size), "0x0")
+
+    def test_mul(self):
+        p = Size(10, 10)
+        self.assertEqual(p * 2, Size(20, 20))
 
     def test_reduce(self):
         point = Point(10, 10)

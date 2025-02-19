@@ -165,6 +165,9 @@ class Polygon(Coords):
     def reshape(self, shape: Size) -> Self:
         return self * (shape / self.size)
 
+    def flip(self, axis: int = 0) -> Self:
+        return np.flip(np.flip(self._coords, axis), axis)
+
 
 class Box(Polygon):
     def validate(self):
@@ -177,6 +180,54 @@ class Box(Polygon):
 
     def __str__(self):
         return F"{self.size}{self.base}"
+
+    @property
+    def x1(self) -> float:
+        return float(self._coords[0][0])
+
+    @property
+    def y1(self) -> float:
+        return float(self._coords[0][1])
+
+    @property
+    def x2(self) -> float:
+        return float(self._coords[1][0])
+
+    @property
+    def y2(self) -> float:
+        return float(self._coords[1][1])
+
+    @x1.setter
+    def x1(self, value: int | float):
+        self._coords[0][0] = value
+
+    @y1.setter
+    def y1(self, value: int | float):
+        self._coords[0][1] = value
+
+    @x2.setter
+    def x2(self, value: int | float):
+        self._coords[1][0] = value
+
+    @y2.setter
+    def y2(self, value: int | float):
+        self._coords[1][1] = value
+
+    @property
+    def NW(self) -> Point:
+        return self.base
+
+    @property
+    def SE(self) -> Point:
+        return self.base + self.size
+
+    @property
+    def NE(self) -> Point:
+        return self.base + Point(self.size.x, 0)
+
+    @property
+    def SW(self) -> Point:
+        return self.base + Point(0, self.size.y)
 
 
 T = TypeVar("T")
