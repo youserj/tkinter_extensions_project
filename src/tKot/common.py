@@ -114,6 +114,10 @@ class Size(Point):
     def __str__(self):
         return F"{int(self.x)}x{int(self.y)}"
 
+    def x_normalize(self) -> Self:
+        """normalize Size to x=1 with keeping proportion"""
+        return self / self.x
+
 
 class Polygon(Coords):
     def __init__(self, *coords: int | float, arr: np.ndarray = None):
@@ -215,19 +219,43 @@ class Box(Polygon):
 
     @property
     def NW(self) -> Point:
+        """return: North-West widget Point"""
         return self.base
 
     @property
     def SE(self) -> Point:
+        """return: South-West widget Point"""
         return self.base + self.size
 
     @property
     def NE(self) -> Point:
-        return self.base + Point(self.size.x, 0)
+        """return: North-East widget Point"""
+        return self.base + Point(x=self.size.x)
 
     @property
     def SW(self) -> Point:
-        return self.base + Point(0, self.size.y)
+        """return: South-West widget Point"""
+        return self.base + Point(y=self.size.y)
+
+    @property
+    def N(self) -> Point:
+        """return: North widget Point"""
+        return self.base + Point(x=self.size.x * 0.5)
+
+    @property
+    def S(self) -> Point:
+        """return: South widget Point"""
+        return self.base + Point(self.size.x * 0.5, self.size.y)
+
+    @property
+    def W(self) -> Point:
+        """return: West widget Point"""
+        return self.base + Point(y=self.size.y * 0.5)
+
+    @property
+    def E(self) -> Point:
+        """return: East widget Point"""
+        return self.base + Point(self.size.x, self.size.y * 0.5)
 
 
 T = TypeVar("T")

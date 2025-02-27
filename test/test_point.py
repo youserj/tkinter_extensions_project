@@ -30,9 +30,10 @@ class TestType(unittest.TestCase):
         self.assertEqual(box.NW, Point(1, 1))
         self.assertEqual(box.SE, Point(10, 10))
         self.assertEqual(box.SW, Point(1, 10))
-        print(box)
-        box.x1 = 10
-        print(box)
+        self.assertEqual(box.N, Point(5.5, 1))
+        self.assertEqual(box.W, Point(1, 5.5))
+        self.assertEqual(box.E, Point(10, 5.5))
+        self.assertEqual(box.S, Point(5.5, 10))
 
     def test_init(self):
         self.assertEqual(Point(), Point(0, 0))
@@ -80,3 +81,8 @@ class TestType(unittest.TestCase):
         p2 = copy(p)
         p2.x = 20
         print(p, p2)
+
+    def test_size(self):
+        s = Size(0.3, 0.1)
+        s2 = s / s.x
+        print(s2)
