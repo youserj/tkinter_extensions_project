@@ -114,9 +114,9 @@ class Size(Point):
     def __str__(self):
         return F"{int(self.x)}x{int(self.y)}"
 
-    def x_normalize(self) -> Self:
+    def x_normalize(self, width: int | float = 1) -> Self:
         """normalize Size to x=1 with keeping proportion"""
-        return self / self.x
+        return self / self.x * width
 
 
 class Polygon(Coords):
