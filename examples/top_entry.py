@@ -1,21 +1,24 @@
 import tkinter as tk
-from src.tKot import TopEntry
+from tKot import TopEntry
+from tKot.common import Box, Size, Point
 
 
-def cb(desc, value: str):
+def cb(desc: list[str], value: str) -> bool:
     if value != "test":
         raise ValueError("not test")
     print(desc, value)
+    return True
 
 
 root = tk.Tk()
-TopEntry(
+x: TopEntry[list[str]] = TopEntry(
     master=root,
-    w=200,
-    h=20,
-    x=100,
-    y=200,
+    box=Box.from_size(
+        size=Size(200, 20),
+        base=Point(100, 200)
+    ),
     desc=['1.2.3.4.5.6', '1'],
     value="test",
-    callback=cb)
+    callback=cb
+)
 root.mainloop()
