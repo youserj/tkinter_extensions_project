@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tKot"
-version = "0.7.10"
+version = "0.7.11"
 authors = [
     {name="Serj Kotilevski", email="youserj@outlook.com"}
 ]
@@ -17,7 +17,8 @@ classifiers = [
 ]
 dependencies = [
     "Pillow>=9.4.0",
-    "numpy>=2.1"
+    "numpy>=2.1",
+    "pydantic>=2.11",
 ]
 keywords=[
     "tkinter",
