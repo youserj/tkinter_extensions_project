@@ -1,14 +1,27 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, filedialog, colorchooser
 from tkinter import ttk
-from typing import Optional, Callable
+from typing import Optional, Callable, Any
+from pathlib import Path
 from pydantic import BaseModel
+from pydantic_core import core_schema
 from .common import Box, Size, Point
 from . import TopEntry
 from .settings import settings
 
 
 type IID = str
+
+class Color(str):
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler
+    ) -> core_schema.CoreSchema:
+        return core_schema.no_info_after_validator_function(
+            cls,
+            core_schema.str_schema(),
+            serialization=core_schema.to_string_ser_schema(),
+        )
 
 
 class BaseModelEditor:
@@ -102,19 +115,29 @@ class BaseModelEditor:
         """Handle selection of a tree item"""
         if not (selected := self.tree.selection()):
             return
-        if (iid := selected[0]) in self.link:
-            x_e, y_e, w, h = self.tree.bbox(iid, column="value")
-            x, y = self.tree.winfo_rootx() + x_e, self.tree.winfo_rooty() + y_e
-            TopEntry[IID](
-                master=self.top,
-                box=Box.from_size(
-                    size=Size(w, h),
-                    base=Point(x, y)
-                ),
-                desc=iid,
-                value=self.tree.item(selected[0])["values"][0],
-                callback=self.change_value
-            )
+        iid = selected[0]
+        if (res := self.link.get(iid)):
+            match getattr(*res):
+                case Path() as path:
+                    if (value := filedialog.askopenfilename(initialdir=path.parent, filetypes=(("DAT", "*.dat"),))) != "":
+                        self.change_value(iid, value)
+                case Color() as color:
+                    val = colorchooser.askcolor(initialcolor=str(color), title=settings.pydantic.BaseModelEditor.choise_color)
+                    if (value := val[1]) is not None:
+                        self.change_value(iid, value)
+                case _:
+                    x_e, y_e, w, h = self.tree.bbox(iid, column="value")
+                    x, y = self.tree.winfo_rootx() + x_e, self.tree.winfo_rooty() + y_e
+                    TopEntry[IID](
+                        master=self.top,
+                        box=Box.from_size(
+                            size=Size(w, h),
+                            base=Point(x, y)
+                        ),
+                        desc=iid,
+                        value=self.tree.item(selected[0])["values"][0],
+                        callback=self.change_value
+                    )
 
     def _keep_item(self, iid: IID, value: str) -> None:
         self.tree.item(iid, values=(value,))

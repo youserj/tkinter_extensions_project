@@ -25,6 +25,7 @@ class _BaseModelEditor(BaseModel):
     heading: _BaseModelEditorHeading = Field(default_factory=_BaseModelEditorHeading)
     save: str = "save"
     error_messages: _ErrorMessages = Field(default_factory=_ErrorMessages)
+    choise_color: str = "choise_color"
 
 
 class _Pydantic(BaseModel):
