@@ -196,9 +196,9 @@ class Polygon(Coords):
 
 class SmoothBox(Polygon):
     @classmethod
-    def from_size(cls, size: Size, base: Point = Point(0, 0), prop: float = 0.3) -> "Polygon":
+    def from_size(cls, size: Size, base: Point = Point(0, 0), prop: float = 0.3, maximal: int = 100) -> "Polygon":
         """Returns 12 points (4 vertices + 8 intermediate)"""
-        radius = min(size.x, size.y) * prop
+        radius = min(min(size.x, size.y) * prop, maximal)
         x, y, w, h = base.x, base.y, size.x, size.y
         vertices = np.empty((12, 2), dtype=np.float32)
         vertices[0] = (x, y)
