@@ -1,15 +1,16 @@
-from abc import ABC, abstractmethod
-from typing import Self, TypeVar, Generic
+from typing import Self
 import numpy as np
 from numpy.typing import NDArray
 
 
-class Coords(ABC):
-    _coords: NDArray[np.float16]
+class Coords:
+    _coords: NDArray[np.float32]
+    __slots__ = ("_coords",)
 
-    @abstractmethod
-    def __init__(self, *coords: int | float, arr: np.ndarray = None):
+    def __init__(self, arr: np.ndarray):
         """init"""
+        arr.flags.writeable = False
+        self._coords = arr
 
     def __mul__(self, other: int | float):
         if isinstance(other, (int, float)):
@@ -31,7 +32,7 @@ class Coords(ABC):
 
     def __iter__(self):
         return iter(self._coords.astype(
-            dtype=np.int16
+            dtype=np.int32
         ).flatten(
         ).tolist())
 
@@ -42,7 +43,7 @@ class Coords(ABC):
 class Point(Coords):
     def __init__(self, *coords: int | float, arr: np.ndarray = None, x: int | float = None, y: int | float = None):
         if arr is not None:
-            self._coords = arr
+            super().__init__(arr)
         else:
             if x is not None or y is not None:
                 coords = (
@@ -53,7 +54,7 @@ class Point(Coords):
                 coords = (0, 0)
             elif len(coords) != 2:
                 raise ValueError(F"{self.__class__.__name__} got not one pair values")
-            self._coords = np.array(coords, dtype=np.float16).reshape(1, 2)
+            super().__init__(np.array(coords, dtype=np.float32).reshape(1, 2))
 
     @property
     def x(self) -> float:
@@ -68,7 +69,7 @@ class Point(Coords):
         self._coords[0][0] = value
 
     @y.setter
-    def y(self, value: int | float):
+    def y(self, value: int | float) -> None:
         self._coords[0][1] = value
 
     def __add__(self, other: Self):
@@ -109,6 +110,11 @@ class Point(Coords):
     def __copy__(self):
         return self.__class__(arr=self._coords.copy())
 
+    def unsafely(self) -> "Point":
+        new = self.__class__(arr=self._coords.copy())
+        new._coords.flags.writeable = True
+        return new
+
 
 class Size(Point):
     def __str__(self):
@@ -118,15 +124,30 @@ class Size(Point):
         """normalize Size to x=1 with keeping proportion"""
         return self / self.x * width
 
+    def with_dimensions(self, x: int | float | None = None, y: int | float | None = None) -> "Size":
+        """Returns a new Size instance with modified dimensions.
+        Args:
+            x: New width value (None keeps current)
+            y: New height value (None keeps current)
+        Returns:
+            New Size instance with updated dimensions
+        """
+        new_arr = self._coords.copy()
+        if x is not None:
+            new_arr[0][0] = x
+        if y is not None:
+            new_arr[0][1] = y
+        return self.__class__(arr=new_arr)
+
 
 class Polygon(Coords):
     def __init__(self, *coords: int | float, arr: np.ndarray = None):
         if arr is not None:
-            self._coords = arr
+            super().__init__(arr)
         elif len(coords) < 2:
             raise ValueError(F"{self.__class__.__name__} got not pair values")
         else:
-            self._coords = np.array(coords, dtype=np.float16).reshape(len(coords) // 2, 2)
+            super().__init__(np.array(coords, dtype=np.float32).reshape(len(coords) // 2, 2))
 
     def __add__(self, other: Point):
         return self.__class__(arr=self._coords + other._coords)
@@ -171,6 +192,55 @@ class Polygon(Coords):
 
     def flip(self, axis: int = 0) -> Self:
         return np.flip(np.flip(self._coords, axis), axis)
+
+
+class SmoothBox(Polygon):
+    @classmethod
+    def from_size(cls, size: Size, base: Point = Point(0, 0), prop: float = 0.3) -> "Polygon":
+        """Returns 12 points (4 vertices + 8 intermediate)"""
+        radius = min(size.x, size.y) * prop
+        x, y, w, h = base.x, base.y, size.x, size.y
+        vertices = np.empty((12, 2), dtype=np.float32)
+        vertices[0] = (x, y)
+        vertices[1] = (x, y + radius)
+        vertices[2] = (x, y + h - radius)
+        vertices[3] = (x, y + h)
+        vertices[4] = (x + radius, y + h)
+        vertices[5] = (x + w - radius, y + h)
+        vertices[6] = (x + w, y + h)
+        vertices[7] = (x + w, y + h - radius)
+        vertices[8] = (x + w, y + radius)
+        vertices[9] = (x + w, y)
+        vertices[10] = (x + w - radius, y)
+        vertices[11] = (x + radius, y)
+        return cls(arr=vertices)
+
+    def __str__(self):
+        return F"{self.size}{self.base}"
+
+    @property
+    def base(self) -> Point:
+        return Point(arr=self._coords[0].reshape(1, 2))
+
+    @property
+    def NW(self) -> Point:
+        """return: North-West widget Point"""
+        return self.base
+
+    @property
+    def SE(self) -> Point:
+        """return: South-East box Point"""
+        return Point(arr=self._coords[6].reshape(1, 2))
+
+    @property
+    def NE(self) -> Point:
+        """return: North-East widget Point"""
+        return Point(arr=self._coords[9].reshape(1, 2))
+
+    @property
+    def SW(self) -> Point:
+        """return: South-West box Point"""
+        return Point(arr=self._coords[3].reshape(1, 2))
 
 
 class Box(Polygon):
@@ -258,10 +328,7 @@ class Box(Polygon):
         return self.base + Point(self.size.x, self.size.y * 0.5)
 
 
-T = TypeVar("T")
-
-
-class CircleTuple(Generic[T]):
+class CircleTuple[T]:
     """tuple with circle next/previous methods"""
     __values: tuple[T, ...]
     __pos: int

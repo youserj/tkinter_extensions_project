@@ -1,6 +1,7 @@
 import unittest
+from time import perf_counter
 from copy import copy
-from tKot.common import Polygon, Box, Point, Size
+from src.tKot.common import Polygon, Box, Point, Size, SmoothBox
 
 
 class TestType(unittest.TestCase):
@@ -35,6 +36,22 @@ class TestType(unittest.TestCase):
         self.assertEqual(box.E, Point(10, 5.5))
         self.assertEqual(box.S, Point(5.5, 10))
 
+    def test_SmoothBox(self):
+        st = perf_counter()
+        for _ in range(1000):
+            box = SmoothBox.from_size(
+                size=Size(100, 100),
+                base=Point(20, 10)
+            )
+        print(perf_counter()-st)
+        st = perf_counter()
+        for _ in range(1000):
+            box = SmoothBox.from_size2(
+                size=Size(100, 100),
+                base=Point(20, 10)
+            )
+        print(perf_counter()-st)
+
     def test_init(self):
         self.assertEqual(Point(), Point(0, 0))
         self.assertRaises(ValueError, Point, (0, 1, 3, 4))
@@ -57,6 +74,7 @@ class TestType(unittest.TestCase):
         point = Point(10, 10)
         point2 = Point(100, 100) + point
         self.assertEqual(point2, Point(110, 110))
+        point._coords.flags.writeable = True
         point.y += 1
         self.assertEqual(point, Point(10, 11))
 
