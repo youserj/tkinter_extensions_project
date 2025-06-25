@@ -1,22 +1,22 @@
 import tkinter as tk
-from typing import Literal
+from typing import Callable, Optional, Any
 
 
 class ScrollFrame(tk.Frame):
     """ scrolling use only grid, automatic"""
     first_viewable: int
     last_viewable: int
-    yscrollcommand: ()
+    yscrollcommand: Optional[Callable]
     # sticky: Literal[tk.W] | Literal[tk.E] | tk.N | tk.S | tk.E | tk.NW | tk.SW | tk.NE | tk.SE | tk.NS | tk.EW | tk.NSEW | tk.CENTER
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         super(ScrollFrame, self).__init__(**kwargs)
         self.first_viewable = self.last_viewable = 0  # first initialisation
         self.sticky = tk.W
         self.yscrollcommand = None  # need assigned after Scrollbar
         self.bind("<Configure>", lambda e: self.__handle_configure())
 
-    def __handle_configure(self):
+    def __handle_configure(self) -> None:
         if self.yscrollcommand:
             h = self.winfo_height()
             print(f"{h=}")
@@ -51,7 +51,7 @@ class ScrollFrame(tk.Frame):
             # print(F"{self.first_viewable=} {self.last_viewable=} {k=}")
             self.yscrollcommand(self.first_viewable / len(childs), ((self.last_viewable + k) / len(childs)))
 
-    def yview(self, *args):
+    def yview(self, *args: Any) -> None:
         """Query and change the vertical position of the view."""
         length: int = len(self.winfo_children())
         match args:

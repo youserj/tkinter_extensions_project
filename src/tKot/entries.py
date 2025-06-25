@@ -1,17 +1,15 @@
 import tkinter as tk
-from typing import Callable, Generic, TypeVar
+from typing import Callable, Any
 from .common import Box
 
-T = TypeVar('T')
 
-
-class TopEntry(Generic[T]):
+class TopEntry[T]:
     def __init__(self,
-                 master: tk.TOP,
+                 master: tk.Misc,
                  box: Box,
                  desc: T,
                  value: str,
-                 callback: Callable[[T, str], bool]):
+                 callback: Callable[[T, str], bool]) -> None:
         self.top = tk.Toplevel(master)
         self.top.overrideredirect(True)
         self.top.bind("<FocusOut>", lambda e: self.top.destroy())
@@ -35,7 +33,7 @@ class TopEntry(Generic[T]):
         self.top.lift(master)
         self.entry.focus_set()
 
-    def __set_value(self, _: tk.Event):
+    def __set_value(self, _: "tk.Event[tk.Misc]") -> None:
         try:
             self.cb(self.desc, self.variable.get())
             self.top.destroy()
@@ -45,14 +43,16 @@ class TopEntry(Generic[T]):
 
 
 class TopOptionMenu:
+    o_m: tk.OptionMenu
+
     def __init__(self,
-                 master: tk.TOP,
+                 master: tk.Misc,
                  w: int, h: int,
                  x: int, y: int,
                  desc: list[str],
                  value: str,
                  values: list[str],
-                 callback: Callable[[list[str], str], bool]):
+                 callback: Callable[[list[str], str], bool]) -> None:
         self.top = tk.Toplevel(master)
         self.top.overrideredirect(True)
         self.top.bind("<FocusOut>", lambda e: self.top.destroy())
@@ -76,7 +76,7 @@ class TopOptionMenu:
         self.top.lift(master)
         o_m.focus_set()
 
-    def __change_var(self, *args):
+    def __change_var(self, *args: Any) -> None:
         try:
             self.cb(self.desc, self.var.get())
             self.top.destroy()
@@ -84,7 +84,7 @@ class TopOptionMenu:
             self.o_m.configure(background="red")
             self.var.set(str(e))
 
-    def __set_value(self, e: tk.Event):
+    def __set_value(self, e: "tk.Event[tk.Misc]") -> None:
         try:
             self.cb(self.desc, self.var.get())
             self.top.destroy()
@@ -94,14 +94,17 @@ class TopOptionMenu:
 
 
 class TopListBox:
+    sc: tk.Scrollbar
+    l_b: tk.Listbox
+
     def __init__(self,
-                 master: tk.TOP,
+                 master: tk.Misc,
                  w: int, h: int,
                  x: int, y: int,
                  desc: list[str],
                  value: str,
                  values: list[str],
-                 callback: Callable[[list[str], str], bool]):
+                 callback: Callable[[list[str], str], bool]) -> None:
         self.top = tk.Toplevel(master)
         self.top.overrideredirect(True)
         self.top.bind("<FocusOut>", lambda e: self.top.destroy())
@@ -131,13 +134,16 @@ class TopListBox:
         self.top.lift(master)
         l_b.focus_set()
 
-    def __set_value(self, e: tk.Event):
-        try:
-            w: tk.Listbox = e.widget
-            if len(v := w.curselection()) == 1:
-                self.cb(self.desc, self.values[v[0]])
-                self.top.destroy()
-            print(v)
-        except ValueError as e:
-            self.l_b.configure(background="red")
-            self.var.set(str(e))
+    def __set_value(self, e: "tk.Event[tk.Misc]") -> None:
+        if isinstance(e.widget, tk.Listbox):
+            try:
+                w = e.widget
+                if len(v := w.curselection()) == 1:
+                    self.cb(self.desc, self.values[v[0]])
+                    self.top.destroy()
+                print(v)
+            except ValueError as e:
+                self.l_b.configure(background="red")
+                # self.var.set(str(e))
+        else:
+            raise RuntimeError("not support")

@@ -1,10 +1,11 @@
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import Optional
 from abc import ABC, abstractmethod
 import math
 import tkinter as tk
 from tkinter.font import Font
 import numpy as np
+from numpy.typing import NDArray
 from .common import Point
 
 
@@ -12,7 +13,7 @@ from .common import Point
 class ObjListWidget(ABC):
     can: tk.Canvas
 
-    def find_ids(self, e: tk.Event) -> tuple[int, ...]:
+    def find_ids(self, e: "tk.Event[tk.Misc]") -> tuple[int, ...]:
         """ find canvas IDs by event. Clear day_info if it not selected """
         y = self.can.canvasy(e.y)
         x = self.can.canvasx(e.x)
@@ -20,15 +21,15 @@ class ObjListWidget(ABC):
         return result
 
     @abstractmethod
-    def get_event(self, e: tk.Event) -> int | None:
+    def get_event(self, e: "tk.Event[tk.Misc]") -> Optional[int]:
         """"""
 
     @abstractmethod
-    def refresh(self):
+    def refresh(self) -> None:
         pass
 
     @abstractmethod
-    def place(self, x: int, y: int):
+    def place(self, x: int, y: int) -> None:
         pass
 
 
@@ -36,14 +37,14 @@ class ObjListWidget(ABC):
 class Vector3phase(ObjListWidget):
     size: Point
     is_1phase: bool = True
-    colors: tuple = (
+    colors: tuple[str, ...] = (
         "#effd5f",
         "#00ff00",
         "#ff0000"
     )
 
-    def __post_init__(self):
-        self.__data: np.ndarray
+    def __post_init__(self) -> None:
+        self.__data: NDArray[np.float32]
         self.__font = Font()
         self.LINE_DEG_COEFS: tuple[float, ...] = (0.35, 0.4)
         self.A = 0
@@ -63,7 +64,7 @@ class Vector3phase(ObjListWidget):
         self.__vectors_cid: list[list[int]] = [[-1, -1] for i in range(self.__n_phases)]
         self.__labels_cid: list[list[int]] = [[-1, -1] for i in range(self.__n_phases)]
 
-    def refresh(self):
+    def refresh(self) -> None:
         # normalize i and u vectors
         u_k = (self.size.x*0.35) / np.max(self.__data[:, 1], axis=0, initial=1)
         """normalize coefficient of U"""
@@ -103,7 +104,7 @@ class Vector3phase(ObjListWidget):
                 self.__center.y - math.cos(i_angle) * self.size.y * self.I_LABEL_COEF
             )
 
-    def place(self, x: int, y: int):
+    def place(self, x: int, y: int) -> None:
         self.__coords = Point(x, y)
         """ x, y image coordinates on canvas """
         colorA, colorB, colorC = self.colors
@@ -207,45 +208,45 @@ class Vector3phase(ObjListWidget):
             )
         # self.__set_geometry()
 
-    def get_event(self, e: tk.Event) -> int | None:
+    def get_event(self, e: "tk.Event[tk.Misc]") -> int | None:
         raise ValueError(F"not implement in {self.__class__.__name__}")
 
     """ I(A), U(V), angle(rad)
         for 1ph: I, U, UI_angle
         for 3ph: Ia, Ua, UaIa_angle, UcUa_angle, Ib, Ub, UbIb_angle, UaUb_angle, Ic, Uc, UcIc_angle, UbUc_angle"""
 
-    def set_Ia(self, value: float | int):
+    def set_Ia(self, value: float | int) -> None:
         self.__data[0, 0] = value
 
-    def set_Ua(self, value: float | int):
+    def set_Ua(self, value: float | int) -> None:
         self.__data[0, 1] = value
 
-    def set_UIa_angle(self, value: float | int):
+    def set_UIa_angle(self, value: float | int) -> None:
         self.__data[0, 2] = value
 
-    def set_UcUa_angle(self, value: float | int):
+    def set_UcUa_angle(self, value: float | int) -> None:
         self.__data[0, 3] = value
 
-    def set_Ib(self, value: float | int):
+    def set_Ib(self, value: float | int) -> None:
         self.__data[1, 0] = value
 
-    def set_Ub(self, value: float | int):
+    def set_Ub(self, value: float | int) -> None:
         self.__data[1, 1] = value
 
-    def set_UIb_angle(self, value: float | int):
+    def set_UIb_angle(self, value: float | int) -> None:
         self.__data[1, 2] = value
 
-    def set_UaUb_angle(self, value: float | int):
+    def set_UaUb_angle(self, value: float | int) -> None:
         self.__data[1, 3] = value
 
-    def set_Ic(self, value: float | int):
+    def set_Ic(self, value: float | int) -> None:
         self.__data[2, 0] = value
 
-    def set_Uc(self, value: float | int):
+    def set_Uc(self, value: float | int) -> None:
         self.__data[2, 1] = value
 
-    def set_UIc_angle(self, value: float | int):
+    def set_UIc_angle(self, value: float | int) -> None:
         self.__data[2, 2] = value
 
-    def set_UbUc_angle(self, value: float | int):
+    def set_UbUc_angle(self, value: float | int) -> None:
         self.__data[2, 3] = value

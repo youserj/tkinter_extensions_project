@@ -3,19 +3,20 @@ from tkinter import messagebox, filedialog, colorchooser
 from tkinter import ttk
 from typing import Optional, Callable, Any
 from pathlib import Path
-from pydantic import BaseModel
+from pydantic import BaseModel, GetCoreSchemaHandler
 from pydantic_core import core_schema
 from .common import Box, Size, Point
-from . import TopEntry
+from .entries import TopEntry
 from .settings import settings
 
 
 type IID = str
 
+
 class Color(str):
     @classmethod
     def __get_pydantic_core_schema__(
-        cls, source_type: Any, handler
+        cls, source_type: Any, handler: GetCoreSchemaHandler
     ) -> core_schema.CoreSchema:
         return core_schema.no_info_after_validator_function(
             cls,
@@ -54,12 +55,12 @@ class BaseModelEditor:
         self.tree.bind("<ButtonRelease-1>", self.on_tree_select)
         self.load_settings_to_tree()
 
-    def load_settings_to_tree(self):
+    def load_settings_to_tree(self) -> None:
         """Recursively load settings into the treeview"""
         self.tree.delete(*self.tree.get_children())
         self._add_model_to_tree("", self.model)
 
-    def _add_model_to_tree(self, root_iid: IID, root_model: BaseModel):
+    def _add_model_to_tree(self, root_iid: IID, root_model: BaseModel) -> None:
         """Iterative method to add model fields to tree using stack"""
         stack = [(root_iid, root_model)]
         while stack:
@@ -111,7 +112,7 @@ class BaseModelEditor:
                         values=(str(submodel),),
                     )] = (model, field_name)
 
-    def on_tree_select(self, event):
+    def on_tree_select(self, event: "tk.Event[tk.Misc]") -> None:
         """Handle selection of a tree item"""
         if not (selected := self.tree.selection()):
             return
@@ -193,7 +194,7 @@ class BaseModelEditor:
                 return None
         return None
 
-    def save_settings(self):
+    def save_settings(self) -> None:
         try:
             self.model.model_validate(self.model.dict())
             self.__cb(self.model)

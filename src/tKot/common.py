@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Self, Optional, Iterator
 import numpy as np
 from numpy.typing import NDArray
 
@@ -7,41 +7,34 @@ class Coords:
     _coords: NDArray[np.float32]
     __slots__ = ("_coords",)
 
-    def __init__(self, arr: np.ndarray):
+    def __init__(self, arr: NDArray[np.float32]) -> None:
         """init"""
-        arr.flags.writeable = False
-        self._coords = arr
+        self._coords = np.asarray(arr, dtype=np.float32)  # Явное приведение типа
+        self._coords.flags.writeable = False
 
-    def __mul__(self, other: int | float):
-        if isinstance(other, (int, float)):
-            return self.__class__(arr=self._coords * other)
-        else:
-            raise TypeError(F"for multiplicate of {self.__class__.__name__}")
+    def __mul__(self, other: int | float) -> Self:
+        return self.__class__(arr=self._coords * other)
 
-    def __truediv__(self, other: int | float):
-        if isinstance(other, (int, float)):
-            return self.__class__(arr=self._coords / other)
-        else:
-            raise TypeError(F"for truediv of {self.__class__.__name__}")
+    def __truediv__(self, other: int | float) -> Self:
+        return self.__class__(arr=self._coords / other)
 
-    def __floordiv__(self, other: int | float):
-        if isinstance(other, (int, float)):
-            return self.__class__(arr=self._coords / other)
-        else:
-            raise TypeError(F"for truediv of {self.__class__.__name__}")
+    def __floordiv__(self, other: int | float) -> Self:
+        return self.__class__(arr=self._coords / other)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[int]:
         return iter(self._coords.astype(
             dtype=np.int32
         ).flatten(
         ).tolist())
 
-    def __eq__(self, other: Self):
-        return np.equal(self._coords, other._coords).all()
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Coords):
+            return bool(np.equal(self._coords, other._coords).all())
+        raise NotImplementedError
 
 
 class Point(Coords):
-    def __init__(self, *coords: int | float, arr: np.ndarray = None, x: int | float = None, y: int | float = None):
+    def __init__(self, *coords: int | float, arr: Optional[NDArray[np.float32]] = None, x: Optional[int | float] = None, y: Optional[int | float] = None) -> None:
         if arr is not None:
             super().__init__(arr)
         else:
@@ -58,48 +51,48 @@ class Point(Coords):
 
     @property
     def x(self) -> float:
-        return float(self._coords[0][0])
+        return float(self._coords[0, 0])
+
+    @x.setter
+    def x(self, value: float) -> None:
+        self._coords[0, 0] = value
 
     @property
     def y(self) -> float:
-        return float(self._coords[0][1])
-
-    @x.setter
-    def x(self, value: int | float):
-        self._coords[0][0] = value
+        return float(self._coords[0, 1])
 
     @y.setter
-    def y(self, value: int | float) -> None:
-        self._coords[0][1] = value
+    def y(self, value: float) -> None:
+        self._coords[0, 1] = value
 
-    def __add__(self, other: Self):
+    def __add__(self, other: Self) -> Self:
         return self.__class__(arr=self._coords + other._coords)
 
-    def __sub__(self, other: Self):
+    def __sub__(self, other: Self) -> Self:
         return self.__class__(arr=self._coords - other._coords)
 
-    def __mul__(self, other: int | float | Self):
+    def __mul__(self, other: int | float | Self) -> Self:
         if isinstance(other, Point):
             return self.__class__(arr=self._coords * other._coords)
         else:
             return super().__mul__(other)
 
-    def __truediv__(self, other: int | float | Self):
+    def __truediv__(self, other: int | float | Self) -> Self:
         if isinstance(other, Point):
             return self.__class__(arr=self._coords / other._coords)
         else:
             return super().__truediv__(other)
 
-    def __floordiv__(self, other: int | float | Self):
+    def __floordiv__(self, other: int | float | Self) -> Self:
         if isinstance(other, Point):
             return self.__class__(arr=self._coords // other._coords)
         else:
             return super().__floordiv__(other)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return F"{int(self.x):+}{int(self.y):+}"
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int) -> float:
         if item == 0:
             return self.x
         elif item == 1:
@@ -107,17 +100,17 @@ class Point(Coords):
         else:
             raise StopIteration
 
-    def __copy__(self):
+    def __copy__(self) -> Self:
         return self.__class__(arr=self._coords.copy())
 
-    def unsafely(self) -> "Point":
+    def unsafely(self) -> Self:
         new = self.__class__(arr=self._coords.copy())
         new._coords.flags.writeable = True
         return new
 
 
 class Size(Point):
-    def __str__(self):
+    def __str__(self) -> str:
         return F"{int(self.x)}x{int(self.y)}"
 
     def x_normalize(self, width: int | float = 1) -> Self:
@@ -139,9 +132,24 @@ class Size(Point):
             new_arr[0][1] = y
         return self.__class__(arr=new_arr)
 
+    def scaled(self, fx: float, fy: Optional[float] = None) -> "Size":
+        """Scale dimensions by given factor(s).
+        Args:
+            fx: Scale factor for width (or uniform scale if fy is None)
+            fy: Optional scale factor for height (defaults to fx if None)
+        Returns:
+            New Size object with scaled dimensions
+        Example:
+            >>> Size(100,50).scaled(0.5) → Size(50,25)
+            >>> Size(100,50).scaled(2, 1.5) → Size(200,75)
+        """
+        if fy is None:
+            fy = fx
+        return self.__class__(arr=self._coords * np.array((fx, fy), dtype=np.float32))
+
 
 class Polygon(Coords):
-    def __init__(self, *coords: int | float, arr: np.ndarray = None):
+    def __init__(self, *coords: int | float, arr: Optional[NDArray[np.float32]] = None) -> None:
         if arr is not None:
             super().__init__(arr)
         elif len(coords) < 2:
@@ -149,25 +157,25 @@ class Polygon(Coords):
         else:
             super().__init__(np.array(coords, dtype=np.float32).reshape(len(coords) // 2, 2))
 
-    def __add__(self, other: Point):
+    def __add__(self, other: Point) -> Self:
         return self.__class__(arr=self._coords + other._coords)
 
-    def __sub__(self, other: Point):
+    def __sub__(self, other: Point) -> Self:
         return self.__class__(arr=self._coords - other._coords)
 
-    def __mul__(self, other: int | float | Point):
+    def __mul__(self, other: int | float | Point) -> Self:
         if isinstance(other, Point):
             return self.__class__(arr=self._coords * other._coords)
         else:
             return super().__mul__(other)
 
-    def __truediv__(self, other: int | float | Point):
+    def __truediv__(self, other: int | float | Point) -> Self:
         if isinstance(other, Point):
             return self.__class__(arr=self._coords / other._coords)
         else:
             return super().__truediv__(other)
 
-    def __floordiv__(self, other: int | float | Point):
+    def __floordiv__(self, other: int | float | Point) -> Self:
         if isinstance(other, Point):
             return self.__class__(arr=self._coords // other._coords)
         else:
@@ -191,14 +199,14 @@ class Polygon(Coords):
         return self * (shape / self.size)
 
     def flip(self, axis: int = 0) -> Self:
-        return np.flip(np.flip(self._coords, axis), axis)
+        return self.__class__(arr=np.flip(np.flip(self._coords, axis), axis))
 
 
 class SmoothBox(Polygon):
     @classmethod
     def from_size(cls, size: Size, base: Point = Point(0, 0), prop: float = 0.3, maximal: int = 100) -> "Polygon":
         """Returns 12 points (4 vertices + 8 intermediate)"""
-        radius = min(min(size.x, size.y) * prop, maximal)
+        radius = min(min(*size) * prop, maximal)
         x, y, w, h = base.x, base.y, size.x, size.y
         vertices = np.empty((12, 2), dtype=np.float32)
         vertices[0] = (x, y)
@@ -215,7 +223,7 @@ class SmoothBox(Polygon):
         vertices[11] = (x + radius, y)
         return cls(arr=vertices)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return F"{self.size}{self.base}"
 
     @property
@@ -244,7 +252,7 @@ class SmoothBox(Polygon):
 
 
 class Box(Polygon):
-    def validate(self):
+    def validate(self) -> None:
         if len(self._coords) != 2:
             raise ValueError(F"got pair[{len(self._coords)}], expected 2")
 
@@ -252,7 +260,7 @@ class Box(Polygon):
     def from_size(cls, size: Size, base: Point = Point(0, 0)) -> Self:
         return cls(arr=np.concatenate((base._coords, (base + size)._coords)))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return F"{self.size}{self.base}"
 
     @property
@@ -270,22 +278,6 @@ class Box(Polygon):
     @property
     def y2(self) -> float:
         return float(self._coords[1][1])
-
-    @x1.setter
-    def x1(self, value: int | float):
-        self._coords[0][0] = value
-
-    @y1.setter
-    def y1(self, value: int | float):
-        self._coords[0][1] = value
-
-    @x2.setter
-    def x2(self, value: int | float):
-        self._coords[1][0] = value
-
-    @y2.setter
-    def y2(self, value: int | float):
-        self._coords[1][1] = value
 
     @property
     def NW(self) -> Point:
@@ -333,7 +325,7 @@ class CircleTuple[T]:
     __values: tuple[T, ...]
     __pos: int
 
-    def __init__(self, /, *values: T, position: int = 0, value: T = None):
+    def __init__(self, /, *values: T, position: int = 0, value: Optional[T] = None) -> None:
         self.__values = tuple(values)
         if value is not None:
             self.set(value)
@@ -359,5 +351,5 @@ class CircleTuple[T]:
             self.__pos = len(self.__values) - 1
         return self.current
 
-    def set(self, value: T):
+    def set(self, value: T) -> None:
         self.__pos = self.__values.index(value)

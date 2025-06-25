@@ -1,14 +1,15 @@
+from typing import Optional, Any
 import tkinter as tk
 from PIL import Image, ImageTk
-from .common import Point
+from .common import Size
 
 
 class Icon(tk.Widget):
     p_im: Image.Image | None
-    im: ImageTk.PhotoImage | None
-    info: str | None
+    im: Optional[ImageTk.PhotoImage]
+    info: Optional[str]
 
-    def __init__(self, master=None, **kw):
+    def __init__(self, master: Optional[tk.Misc] = None, **kw: Any) -> None:
         self.p_im = kw.pop("pillow_image", None)
         if kw.pop("radio", False):
             tk.Widget.__init__(self, master, 'radiobutton', kw)
@@ -21,7 +22,7 @@ class Icon(tk.Widget):
         self.im = None
         self.bind("<Configure>", self.__handle_configure)
 
-    def __handle_configure(self, e: tk.Event):
+    def __handle_configure(self, e: "tk.Event[tk.Misc]") -> None:
         """auto change image size"""
         if self.p_im:
             h = self.winfo_height()
@@ -33,21 +34,21 @@ class Icon(tk.Widget):
 class StatusIcon:
     """Icon with status properties"""
     __c: tk.Canvas
-    c_id: int
     __current: int
-    __im: ImageTk
-    __size = Point
+    __im: ImageTk.PhotoImage
+    __size: Size
+    __images: dict[int, Image.Image]
 
     def __init__(self,
                  canvas: tk.Canvas,
-                 images: dict[int, Image],
-                 default: int = None):
+                 images: dict[int, Image.Image],
+                 default: Optional[int] = None) -> None:
         self.__c = canvas
         """ canvas for widget """
         self.__c_id = -1
         """ Image canvas ID. -1 if not place """
         self.__images = images
-        self.__size = Point(100, 100)
+        self.__size = Size(100, 100)
         """icon size"""
         self.set_status(tuple(self.__images.keys())[0] if default is None else default)
 
@@ -55,17 +56,17 @@ class StatusIcon:
         """return current status"""
         return self.__current
 
-    def __set_image(self):
+    def __set_image(self) -> None:
         self.__im = ImageTk.PhotoImage(self.__images[self.__current].resize((int(self.__size.x), int(self.__size.y))))
 
-    def set_status(self, value: int):
+    def set_status(self, value: int) -> None:
         """set status with change image"""
         self.__current = value
         self.__set_image()
         if self.__c_id != -1:
             self.__c.itemconfigure(self.__c_id, image=self.__im)
 
-    def set_size(self, value: Point):
+    def set_size(self, value: Size) -> None:
         if self.__c_id == -1:
             self.__size = value
             self.__set_image()
@@ -73,10 +74,10 @@ class StatusIcon:
             raise ValueError(F"need clear from canvas before set_size")
 
     @property
-    def size(self):
+    def size(self) -> Size:
         return self.__size
 
-    def place(self, x: int, y: int):
+    def place(self, x: int, y: int) -> None:
         """ replace on canvas by (x, y). Old canvas id shall delete"""
         if self.__c_id != -1:
             self.__c.delete(self.__c_id)
@@ -84,7 +85,7 @@ class StatusIcon:
                                             anchor=tk.NW,
                                             image=self.__im)
 
-    def delete(self):
+    def delete(self) -> None:
         """delete from canvas"""
         self.__c.delete(self.__c_id)
         self.__c_id = -1
