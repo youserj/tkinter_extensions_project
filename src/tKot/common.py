@@ -21,11 +21,9 @@ class Coords:
     def __floordiv__(self, other: int | float) -> Self:
         return self.__class__(arr=self._coords / other)
 
-    def __iter__(self) -> Iterator[int]:
-        return iter(self._coords.astype(
-            dtype=np.int32
-        ).flatten(
-        ).tolist())
+    def __iter__(self) -> Iterator[float]:
+        # yield from self._coords.flat
+        yield from (float(x) for x in self._coords.flat)
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Coords):
@@ -204,7 +202,7 @@ class Polygon(Coords):
 
 class SmoothBox(Polygon):
     @classmethod
-    def from_size(cls, size: Size, base: Point = Point(0, 0), prop: float = 0.3, maximal: int = 100) -> "Polygon":
+    def from_size(cls, size: Size, base: Point = Point(0, 0), prop: float = 0.3, maximal: int = 100) -> Self:
         """Returns 12 points (4 vertices + 8 intermediate)"""
         radius = min(min(*size) * prop, maximal)
         x, y, w, h = base.x, base.y, size.x, size.y
@@ -249,6 +247,20 @@ class SmoothBox(Polygon):
     def SW(self) -> Point:
         """return: South-West box Point"""
         return Point(arr=self._coords[3].reshape(1, 2))
+
+    @property
+    def N(self) -> Point:
+        arr = np.empty((1, 2), dtype=np.float32)
+        arr[0, 0] = self._coords[0, 0] + (self._coords[6, 0] - self._coords[0, 0]) * 0.5
+        arr[0, 1] = self._coords[0, 1]
+        return Point(arr=arr)
+
+    @property
+    def S(self) -> Point:
+        arr = np.empty((1, 2), dtype=np.float32)
+        arr[0, 0] = self._coords[0, 0] + (self._coords[6, 0] - self._coords[0, 0]) * 0.5
+        arr[0, 1] = self._coords[3, 1]
+        return Point(arr=arr)
 
 
 class Box(Polygon):
@@ -353,3 +365,7 @@ class CircleTuple[T]:
 
     def set(self, value: T) -> None:
         self.__pos = self.__values.index(value)
+
+
+NULL_POLYGON = Polygon(0, 0, 0, 0)
+"""use for capture canvas ID"""

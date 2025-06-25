@@ -42,17 +42,17 @@ class TopEntry[T]:
             self.variable.set(str(e))
 
 
-class TopOptionMenu:
+class TopOptionMenu[T]:
     o_m: tk.OptionMenu
 
     def __init__(self,
                  master: tk.Misc,
                  w: int, h: int,
                  x: int, y: int,
-                 desc: list[str],
+                 desc: T,
                  value: str,
                  values: list[str],
-                 callback: Callable[[list[str], str], bool]) -> None:
+                 callback: Callable[[T, str], bool]) -> None:
         self.top = tk.Toplevel(master)
         self.top.overrideredirect(True)
         self.top.bind("<FocusOut>", lambda e: self.top.destroy())
@@ -93,7 +93,7 @@ class TopOptionMenu:
             self.var.set(str(e))
 
 
-class TopListBox:
+class TopListBox[T]:
     sc: tk.Scrollbar
     l_b: tk.Listbox
 
@@ -101,10 +101,10 @@ class TopListBox:
                  master: tk.Misc,
                  w: int, h: int,
                  x: int, y: int,
-                 desc: list[str],
+                 desc: T,
                  value: str,
                  values: list[str],
-                 callback: Callable[[list[str], str], bool]) -> None:
+                 callback: Callable[[T, str], bool]) -> None:
         self.top = tk.Toplevel(master)
         self.top.overrideredirect(True)
         self.top.bind("<FocusOut>", lambda e: self.top.destroy())
