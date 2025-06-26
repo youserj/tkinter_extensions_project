@@ -34,6 +34,7 @@ class TestType(unittest.TestCase):
         self.assertEqual(box.W, Point(1, 5.5))
         self.assertEqual(box.E, Point(10, 5.5))
         self.assertEqual(box.S, Point(5.5, 10))
+        self.assertEqual(box.size, Size(9, 9))
 
     def test_SmoothBox(self) -> None:
         st = perf_counter()

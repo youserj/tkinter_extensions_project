@@ -225,6 +225,10 @@ class SmoothBox(Polygon):
         return F"{self.size}{self.base}"
 
     @property
+    def size(self) -> Size:
+        return Size(arr=self.SE._coords - self.NW._coords)
+
+    @property
     def base(self) -> Point:
         return Point(arr=self._coords[0].reshape(1, 2))
 
@@ -267,6 +271,14 @@ class Box(Polygon):
     def validate(self) -> None:
         if len(self._coords) != 2:
             raise ValueError(F"got pair[{len(self._coords)}], expected 2")
+
+    @property
+    def size(self) -> Size:
+        return Size(arr=(self._coords[1] - self._coords[0]).reshape(1, 2))
+
+    @property
+    def base(self) -> Point:
+        return Point(arr=self._coords[0].reshape(1, 2))
 
     @classmethod
     def from_size(cls, size: Size, base: Point = Point(0, 0)) -> Self:
@@ -330,6 +342,9 @@ class Box(Polygon):
     def E(self) -> Point:
         """return: East widget Point"""
         return self.base + Point(self.size.x, self.size.y * 0.5)
+
+    def to_smoothbox(self, prop: float = 0.3, maximal: int = 100) -> SmoothBox:
+        return SmoothBox.from_size(self.size, self.base, prop, maximal)
 
 
 class CircleTuple[T]:
