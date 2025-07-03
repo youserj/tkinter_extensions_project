@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import Callable, Any
+from typing import Callable, Any, Literal
 from .common import Box
 
 
@@ -9,7 +9,9 @@ class TopEntry[T]:
                  box: Box,
                  desc: T,
                  value: str,
-                 callback: Callable[[T, str], bool]) -> None:
+                 callback: Callable[[T, str], bool],
+                 selection: Literal["ON", "OFF"] = "OFF"
+                 ) -> None:
         self.top = tk.Toplevel(master)
         self.top.overrideredirect(True)
         self.top.bind("<FocusOut>", lambda e: self.top.destroy())
@@ -32,6 +34,8 @@ class TopEntry[T]:
         self.cb = callback
         self.top.lift(master)
         self.entry.focus_set()
+        if selection == "ON":
+            self.entry.selection_range(0, tk.END)
 
     def __set_value(self, _: "tk.Event[tk.Misc]") -> None:
         try:

@@ -1,6 +1,6 @@
 import tkinter as tk
-from tKot import TopEntry
-from tKot.common import Box, Size, Point
+from src.tKot import TopEntry
+from src.tKot.common import Box, Size, Point
 
 
 def cb(desc: list[str], value: str) -> bool:
