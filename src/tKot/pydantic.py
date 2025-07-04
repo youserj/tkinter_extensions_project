@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, filedialog, colorchooser
 from tkinter import ttk
-from typing import Optional, Callable, Any
+from typing import Optional, Callable, Any, cast
 from pathlib import Path
 from pydantic import BaseModel, GetCoreSchemaHandler
 from pydantic_core import core_schema
@@ -117,7 +117,7 @@ class BaseModelEditor:
         if not (selected := self.tree.selection()):
             return
         iid = selected[0]
-        if (res := self.link.get(iid)):
+        if res := self.link.get(iid):
             match getattr(*res):
                 case Path() as path:
                     if (value := filedialog.askopenfilename(initialdir=path.parent, filetypes=(("DAT", "*.dat"),))) != "":
@@ -127,18 +127,21 @@ class BaseModelEditor:
                     if (value := val[1]) is not None:
                         self.change_value(iid, value)
                 case _:
-                    x_e, y_e, w, h = self.tree.bbox(iid, column="value")
-                    x, y = self.tree.winfo_rootx() + x_e, self.tree.winfo_rooty() + y_e
-                    TopEntry[IID](
-                        master=self.top,
-                        box=Box.from_size(
-                            size=Size(w, h),
-                            base=Point(x, y)
-                        ),
-                        desc=iid,
-                        value=self.tree.item(selected[0])["values"][0],
-                        callback=self.change_value
-                    )
+                    if isinstance(res2 := self.tree.bbox(iid, column="value"), tuple):
+                        x_e, y_e, w, h = res2
+                        x, y = self.tree.winfo_rootx() + x_e, self.tree.winfo_rooty() + y_e
+                        TopEntry[IID](
+                            master=self.top,
+                            box=Box.from_size(
+                                size=Size(w, h),
+                                base=Point(x, y)
+                            ),
+                            desc=iid,
+                            value=self.tree.item(selected[0])["values"][0],
+                            callback=self.change_value
+                        )
+                    else:
+                        raise RuntimeError(f"not find {iid} in tree")
 
     def _keep_item(self, iid: IID, value: str) -> None:
         self.tree.item(iid, values=(value,))
@@ -151,6 +154,8 @@ class BaseModelEditor:
             if iid in self.link:
                 model, field_name = self.link[iid]
                 field_info = model.model_fields[field_name]
+                if not field_info.annotation:
+                    return False
                 converted_value = self._convert_value(value, field_info.annotation)
                 setattr(model, field_name, converted_value)
                 self._keep_item(iid, str(converted_value))
@@ -181,7 +186,7 @@ class BaseModelEditor:
     def _convert_value[T](self, value: str, target_type: type[T]) -> T:
         """Convert string value to target type"""
         if target_type is bool:
-            return value.lower() in ("true", "1", "yes", "да")
+            return cast("T", value.lower() in ("true", "1", "yes", "да"))
         return target_type(value)
 
     def _get_item_index(self, item_id: IID) -> Optional[int]:

@@ -1,5 +1,5 @@
 import tkinter as tk
-from src.tKot import ScrollFrame
+from src.tKot.frames import ScrollFrame
 
 
 root = tk.Tk()

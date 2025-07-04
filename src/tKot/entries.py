@@ -10,7 +10,8 @@ class TopEntry[T]:
                  desc: T,
                  value: str,
                  callback: Callable[[T, str], bool],
-                 selection: Literal["ON", "OFF"] = "OFF"
+                 selection: Literal["ON", "OFF"] = "OFF",
+                 cursor_pos: Literal["START", "END"] = "START"
                  ) -> None:
         self.top = tk.Toplevel(master)
         self.top.overrideredirect(True)
@@ -36,6 +37,8 @@ class TopEntry[T]:
         self.entry.focus_set()
         if selection == "ON":
             self.entry.selection_range(0, tk.END)
+        if cursor_pos == "START":
+            self.entry.icursor(tk.END)
 
     def __set_value(self, _: "tk.Event[tk.Misc]") -> None:
         try:

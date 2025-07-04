@@ -1,6 +1,6 @@
 import tkinter as tk
 from src.tKot.buttons import StatusIcon
-from src.tKot.common import Point
+from src.tKot.common import Size
 from PIL import Image
 
 
@@ -15,7 +15,7 @@ s_icon = StatusIcon(c, {
     1: on_image,
     2: off_image},
     default=-1)
-s_icon.set_size(Point(100, 100) * .4)
+s_icon.set_size(Size(100, 100) * .4)
 s_icon.place(10, 10)
 root.after(2000, lambda: s_icon.set_status(2))
 root.after(4000, lambda: s_icon.set_status(1))

@@ -1,5 +1,5 @@
 import tkinter as tk
-from src.tKot import TopEntry
+from src.tKot.entries import TopEntry
 from src.tKot.common import Box, Size, Point
 
 

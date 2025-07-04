@@ -6,7 +6,7 @@ class ScrollFrame(tk.Frame):
     """ scrolling use only grid, automatic"""
     first_viewable: int
     last_viewable: int
-    yscrollcommand: Optional[Callable]
+    yscrollcommand: Optional[Callable[[float, float], None]]
     # sticky: Literal[tk.W] | Literal[tk.E] | tk.N | tk.S | tk.E | tk.NW | tk.SW | tk.NE | tk.SE | tk.NS | tk.EW | tk.NSEW | tk.CENTER
 
     def __init__(self, **kwargs: Any) -> None:

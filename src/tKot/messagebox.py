@@ -8,12 +8,12 @@ class Toast:
     master: tk.Misc
     duration: int = 3000
     color: str = "yellow"
-    after_id: str = field(init=False, default=None)
+    after_id: str = field(init=False, default="")
     top: tk.Toplevel = field(init=False)
 
-    def call(self, info: str):
+    def call(self, info: str) -> None:
         """ show info with deleting old instance """
-        if self.after_id is not None:
+        if self.after_id == "":
             self.top.after_cancel(self.after_id)
             self.top.destroy()
         x, y = self.master.winfo_pointerxy()
