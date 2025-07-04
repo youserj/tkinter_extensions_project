@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import Callable, Any, Literal
+from typing import Callable, Any, Literal, Collection
 from .common import Box
 
 
@@ -106,31 +106,30 @@ class TopListBox[T]:
 
     def __init__(self,
                  master: tk.Misc,
-                 w: int, h: int,
-                 x: int, y: int,
+                 box: Box,
                  desc: T,
                  value: str,
-                 values: list[str],
+                 values: Collection[str],
                  callback: Callable[[T, str], bool]) -> None:
         self.top = tk.Toplevel(master)
         self.top.overrideredirect(True)
         self.top.bind("<FocusOut>", lambda e: self.top.destroy())
-        self.top.geometry(F"{w}x{h*min(10, len(values))}+{x}+{y+h}")
+        self.top.geometry(str(box))
         self.desc = desc
         """descriptor"""
         self.values = values
         sc = tk.Scrollbar(
             master=self.top,
             orient=tk.VERTICAL)
-        l_b = tk.Listbox(
+        self.l_b = tk.Listbox(
             self.top,
             listvariable=tk.Variable(value=values),
             yscrollcommand=sc.set)
-        sc.configure(command=l_b.yview)
-        l_b.bind("<Double-Button-1>", self.__set_value)
-        l_b.bind("<Return>", self.__set_value)
-        l_b.bind("<Escape>", lambda e: self.top.destroy())
-        l_b.pack(
+        sc.configure(command=self.l_b.yview)
+        self.l_b.bind("<Double-Button-1>", self.__set_value)
+        self.l_b.bind("<Return>", self.__set_value)
+        self.l_b.bind("<Escape>", lambda e: self.top.destroy())
+        self.l_b.pack(
             side=tk.LEFT,
             expand=1,
             fill=tk.BOTH)
@@ -139,7 +138,11 @@ class TopListBox[T]:
             fill=tk.Y)
         self.cb = callback
         self.top.lift(master)
-        l_b.focus_set()
+        self.l_b.focus_set()
+        index = list(values).index(value)
+        self.l_b.selection_set(index)
+        self.l_b.activate(index)
+        self.l_b.see(index)
 
     def __set_value(self, e: "tk.Event[tk.Misc]") -> None:
         if isinstance(e.widget, tk.Listbox):

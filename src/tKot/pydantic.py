@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, filedialog, colorchooser
 from tkinter import ttk
-from typing import Optional, Callable, Any, cast
+from typing import Optional, Callable, Any, cast, ClassVar
 from pathlib import Path
 from pydantic import BaseModel, GetCoreSchemaHandler
 from pydantic_core import core_schema
@@ -28,6 +28,7 @@ class Color(str):
 class BaseModelEditor:
     link: dict[IID, tuple[BaseModel, str]]
     modified: set[IID]
+    bool_variables: ClassVar[tuple[str, ...]] = ("No", "Yes")
 
     def __init__(self, root: tk.Tk, model: BaseModel, cb: Callable[[BaseModel], None]):
         self.top = tk.Toplevel(root)
@@ -105,11 +106,15 @@ class BaseModelEditor:
                                 tags=("list_item",)
                             )
                 else:
+                    if isinstance(submodel, bool):
+                        value = self.bool_variables[int(submodel)]
+                    else:
+                        value = str(submodel)
                     self.link[self.tree.insert(
                         parent_iid,
                         tk.END,
                         text=name,
-                        values=(str(submodel),),
+                        values=(value,),
                     )] = (model, field_name)
 
     def on_tree_select(self, event: "tk.Event[tk.Misc]") -> None:
@@ -126,6 +131,8 @@ class BaseModelEditor:
                     val = colorchooser.askcolor(initialcolor=str(color), title=settings.pydantic.BaseModelEditor.choise_color)
                     if (value := val[1]) is not None:
                         self.change_value(iid, value)
+                # case bool():
+                #     print("")
                 case _:
                     if isinstance(res2 := self.tree.bbox(iid, column="value"), tuple):
                         x_e, y_e, w, h = res2

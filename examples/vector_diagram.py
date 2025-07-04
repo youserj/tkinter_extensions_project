@@ -5,7 +5,7 @@ from src.tKot.common import Point
 from src.tKot.diagram import Vector3phase
 
 
-def update_data():
+def update_data() -> None:
     try:
         i = next(it)
     except StopIteration:
