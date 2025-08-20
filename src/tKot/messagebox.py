@@ -1,5 +1,7 @@
+from typing import Optional
 import tkinter as tk
 from dataclasses import dataclass, field
+from .common import Point
 
 
 @dataclass
@@ -8,20 +10,30 @@ class Toast:
     master: tk.Misc
     duration: int = 3000
     color: str = "yellow"
-    after_id: str = field(init=False, default="")
-    top: tk.Toplevel = field(init=False)
+    top: Optional[tk.Toplevel] = field(init=False, default=None)
 
     def call(self, info: str) -> None:
         """ show info with deleting old instance """
-        self.top = tk.Toplevel(self.master, width=0, height=0)
-        if self.after_id == "":
-            self.top.after_cancel(self.after_id)
-            self.top.destroy()
-        x, y = self.master.winfo_pointerxy()
-        self.top.wm_overrideredirect(True)
-        self.top.geometry(F"+{x}+{y}")
-        tk.Label(self.top, text=info, bg=self.color).pack()
-        self.after_id = self.top.after(
-            ms=self.duration,
-            func=self.top.destroy
+        if self.top:
+            self.__destroy()
+        self.top = tk.Toplevel(
+            master=self.master,
+            width=0,
+            height=0
         )
+        self.top.wm_overrideredirect(True)
+        self.top.geometry(str(Point(*self.master.winfo_pointerxy())))
+        tk.Label(
+            master=self.top,
+            text=info,
+            bg=self.color
+        ).pack()
+        self.top.after(
+            ms=self.duration,
+            func=self.__destroy
+        )
+
+    def __destroy(self) -> None:
+        if self.top:
+            self.top.destroy()
+            self.top = None

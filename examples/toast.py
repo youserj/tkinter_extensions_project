@@ -8,7 +8,9 @@ def foo(e: "tk.Event[tk.Misc]") -> None:
 
 root = tk.Tk()
 toast = Toast(root)
-# toast.call("toast message")
+toast.call("toast message")
+# but = tk.Button(root, text="push")
+# but.pack()
 root.bind(
     sequence="<Button-3>",
     func=foo
